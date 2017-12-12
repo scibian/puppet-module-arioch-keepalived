@@ -1,10 +1,12 @@
 Source: puppet-module-arioch-keepalived
 Section: admin
 Priority: optional
-Maintainer: Benoit Boccard <benoit-externe.boccard@edf.fr>
+Maintainer: Scibian Project <packaging@scibian.org>
 Build-Depends: debhelper (>= 9)
 Standards-Version: 3.9.5
 Homepage: https://forge.puppet.com/arioch/keepalived
+Vcs-Git: https://github.com/scibian/puppet-module-arioch-keepalived.git
+Vcs-Browser: https://github.com/scibian/puppet-module-arioch-keepalived
 
 Package: puppet-module-arioch-keepalived
 Architecture: all
