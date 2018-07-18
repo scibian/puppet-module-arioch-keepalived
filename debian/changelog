@@ -1,3 +1,9 @@
+puppet-module-arioch-keepalived (1.2.4-1sci9u1) scibian9; urgency=medium
+
+  * Scibian9 rebuild.
+
+ -- Thomas HAMEL <thomas-externe.hamel@edf.fr>  Wed, 18 Jul 2018 11:49:45 +0200
+
 puppet-module-arioch-keepalived (1.2.4-1sci8u1) scibian8; urgency=medium
 
   * Scibian8 rebuild.
