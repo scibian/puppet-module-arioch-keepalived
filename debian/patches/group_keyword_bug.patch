@@ -1,0 +1,59 @@
+Description: this patch correct a bug on the keyword group
+ TODO: see https://github.com/arioch/puppet-keepalived/commit/230f7411216aaaa44d88aeafca499b25af53859b
+ .
+ puppet-module-arioch-keepalived (1.2.5-1sci9u1) scibian9; urgency=medium
+ .
+   * release upstream 1.2.5
+Author: Nicolas Meaux <nicolas-externe.meaux@edf.fr>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2018-08-29
+
+--- puppet-module-arioch-keepalived-1.2.5.orig/spec/defines/keepalived_lvs_virtual_server_spec.rb
++++ puppet-module-arioch-keepalived-1.2.5/spec/defines/keepalived_lvs_virtual_server_spec.rb
+@@ -25,7 +25,7 @@ describe 'keepalived::lvs::virtual_serve
+ 
+     it {
+       should contain_concat__fragment('keepalived.conf_lvs_virtual_server__TITLE_').with( {
+-        'content' => /^group _TITLE_ \{\s+virtual_server 10.1.1.1 8080\s+lb_algo lc\s+lb_kind NAT\s+protocol TCP\s+/
++        'content' => /^virtual_server 10.1.1.1 8080 \{\s+lb_algo lc\s+lb_kind NAT\s+protocol TCP\s+/
+       })
+       should contain_concat__fragment('keepalived.conf_lvs_virtual_server__TITLE_-footer').with( {
+         'content' => /^\}/
+@@ -43,7 +43,7 @@ describe 'keepalived::lvs::virtual_serve
+ 
+     it {
+       should contain_concat__fragment('keepalived.conf_lvs_virtual_server__TITLE_').with( {
+-        'content' => /^group _TITLE_ \{\s+virtual_server fwmark 123\s+lb_algo lc\s+lb_kind NAT\s+protocol TCP\s+/
++        'content' => /^virtual_server fwmark 123 \{\s+lb_algo lc\s+lb_kind NAT\s+protocol TCP\s+/
+       })
+       should contain_concat__fragment('keepalived.conf_lvs_virtual_server__TITLE_-footer').with( {
+         'content' => /^\}/
+--- puppet-module-arioch-keepalived-1.2.5.orig/templates/lvs_virtual_server.erb
++++ puppet-module-arioch-keepalived-1.2.5/templates/lvs_virtual_server.erb
+@@ -1,10 +1,8 @@
+-group <%= @_name %> {
+-
+-  <%- if @fwmark -%>
+-  virtual_server fwmark <%= @fwmark %>
+-  <%- else -%>
+-  virtual_server <%= @ip_address %> <%= @port %>
+-  <%- end -%>
++<%- if @fwmark -%>
++virtual_server fwmark <%= @fwmark %> {
++<%- else -%>
++virtual_server <%= @ip_address %> <%= @port %> {
++<%- end -%>
+ 
+   <%- if @delay_loop -%>
+   delay_loop <%= @delay_loop %>
