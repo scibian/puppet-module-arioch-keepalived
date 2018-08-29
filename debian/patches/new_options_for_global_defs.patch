@@ -1,0 +1,130 @@
+Description: Add "script_user" and "enable_script_security" options in global_defs class
+ TODO: see https://github.com/duritong/puppet-keepalived/commit/6b668c2cb02cf8751a32ada376dc73432834ae27
+ .
+ puppet-module-arioch-keepalived (1.2.5-1sci9u1) scibian9; urgency=medium
+ .
+   * release upstream 1.2.5
+Author: Nicolas Meaux <nicolas-externe.meaux@edf.fr>
+
+---
+The information above should follow the Patch Tagging Guidelines, please
+checkout http://dep.debian.net/deps/dep3/ to learn about the format. Here
+are templates for supplementary fields that you might want to add:
+
+Origin: <vendor|upstream|other>, <url of original patch>
+Bug: <url in upstream bugtracker>
+Bug-Debian: https://bugs.debian.org/<bugnumber>
+Bug-Ubuntu: https://launchpad.net/bugs/<bugnumber>
+Forwarded: <no|not-needed|url proving that it has been forwarded>
+Reviewed-By: <name and email of someone who approved the patch>
+Last-Update: 2018-08-29
+
+--- puppet-module-arioch-keepalived-1.2.5.orig/.fixtures.yml
++++ puppet-module-arioch-keepalived-1.2.5/.fixtures.yml
+@@ -2,9 +2,9 @@ fixtures:
+   repositories:
+     concat:
+       repo: 'https://github.com/puppetlabs/puppetlabs-concat.git'
+-      ref:  '1.0.0'
++      ref:  '4.0.1'
+     stdlib:
+       repo: 'https://github.com/puppetlabs/puppetlabs-stdlib.git'
+-      ref:  '4.6.0'
++      ref:  '4.19.0'
+   symlinks:
+     keepalived: "#{source_dir}"
+--- puppet-module-arioch-keepalived-1.2.5.orig/manifests/global_defs.pp
++++ puppet-module-arioch-keepalived-1.2.5/manifests/global_defs.pp
+@@ -17,12 +17,20 @@
+ # $router_id::                Define the router ID.
+ #                             Default: undef.
+ #
++# $script_user                Set the global script_user option.
++#                             Default: undef.
++#
++# $enable_script_security::   Set the enable_script_security option.
++#                             Default: undef.
++#
+ class keepalived::global_defs(
+   $notification_email      = undef,
+   $notification_email_from = undef,
+   $smtp_server             = undef,
+   $smtp_connect_timeout    = undef,
+   $router_id               = undef,
++  $script_user             = undef,
++  $enable_script_security  = undef,
+ ) inherits keepalived::params {
+   concat::fragment { 'keepalived.conf_globaldefs':
+     target  => "${::keepalived::params::config_dir}/keepalived.conf",
+--- puppet-module-arioch-keepalived-1.2.5.orig/spec/classes/keepalived_global_defs_spec.rb
++++ puppet-module-arioch-keepalived-1.2.5/spec/classes/keepalived_global_defs_spec.rb
+@@ -99,4 +99,34 @@ describe 'keepalived::global_defs', :typ
+     }
+   end
+ 
++  describe 'with parameter script_user' do
++    let (:params) {
++      {
++        :script_user => '_VALUE_'
++      }
++    }
++
++    it {
++      should \
++        contain_concat__fragment('keepalived.conf_globaldefs').with(
++        'content' => /script_user _VALUE_$/
++      )
++    }
++  end
++
++  describe 'with parameter enable_script_security' do
++    let (:params) {
++      {
++        :enable_script_security => true
++      }
++    }
++
++    it {
++      should \
++        contain_concat__fragment('keepalived.conf_globaldefs').with(
++        'content' => /enable_script_security$/
++      )
++    }
++  end
++
+ end
+--- puppet-module-arioch-keepalived-1.2.5.orig/spec/classes/keepalived_spec.rb
++++ puppet-module-arioch-keepalived-1.2.5/spec/classes/keepalived_spec.rb
+@@ -15,8 +15,7 @@ describe 'keepalived', :type => :class d
+       )
+     }
+ 
+-    it { should contain_file('/etc/keepalived/keepalived.conf').with(
+-        'ensure' => 'present',
++    it { should contain_concat('/etc/keepalived/keepalived.conf').with(
+         'group'  => 'root',
+         'mode'   => '0644',
+         'owner'  => 'root'
+@@ -53,7 +52,7 @@ describe 'keepalived', :type => :class d
+   describe 'with parameter: config_file_mode' do
+     let (:params) { { :config_file_mode => '0644' } }
+ 
+-    it { should contain_file('/etc/keepalived/keepalived.conf').with(
++    it { should contain_concat('/etc/keepalived/keepalived.conf').with(
+         'mode' => '0644'
+       )
+     }
+--- puppet-module-arioch-keepalived-1.2.5.orig/templates/globaldefs.erb
++++ puppet-module-arioch-keepalived-1.2.5/templates/globaldefs.erb
+@@ -18,5 +18,11 @@ global_defs {
+   <%- if @router_id -%>
+   router_id <%= @router_id %>
+   <%- end -%>
++  <%- if @script_user -%>
++  script_user <%= @script_user %>
++  <%- end -%>
++  <%- if @enable_script_security -%>
++  enable_script_security
++  <%- end -%>
+ }
+ 
