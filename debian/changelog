@@ -1,3 +1,9 @@
+puppet-module-arioch-keepalived (1.2.5-1sci9u1) scibian9; urgency=medium
+
+  * release upstream 1.2.5
+
+ -- Nicolas Meaux <nicolas-externe.meaux@edf.fr>  Wed, 29 Aug 2018 14:36:18 +0200
+
 puppet-module-arioch-keepalived (1.2.4-1sci9u1) scibian9; urgency=medium
 
   * Scibian9 rebuild.
