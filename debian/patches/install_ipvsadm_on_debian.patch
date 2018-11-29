@@ -1,0 +1,18 @@
+Description: Install ipvsadm on Debian servers
+Author: Mehdi Dogguy <mehdi.dogguy@edf.fr>
+
+On Debian 9, keepalived does not depend anymore on ipvsadm. Unfortunately,
+nothing brings back ipvsadm. This patch adds ipvsadm as a dependency to
+make sure it is installed when needed.
+
+--- a/manifests/params.pp
++++ b/manifests/params.pp
+@@ -31,7 +31,7 @@
+       $config_owner       = 'root'
+       $daemon_group       = 'root'
+       $daemon_user        = 'root'
+-      $pkg_list           = [ 'keepalived' ]
++      $pkg_list           = [ 'keepalived' , 'ipvsadm' ]
+       $service_hasrestart = false
+       $service_hasstatus  = false
+       $service_name       = 'keepalived'

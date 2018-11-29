@@ -1,3 +1,9 @@
+puppet-module-arioch-keepalived (1.2.5-2sci9u2) UNRELEASED; urgency=medium
+
+  * Add patch install_ipvsadm_on_debian.patch
+
+ -- Mehdi Dogguy <mehdi.dogguy@edf.fr>  Fri, 30 Nov 2018 10:33:04 +0100
+
 puppet-module-arioch-keepalived (1.2.5-2sci9u1) scibian9; urgency=medium
 
   * Add script_user and enable_script_security options in global_defs class
