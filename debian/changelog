@@ -1,3 +1,11 @@
+puppet-module-arioch-keepalived (1.2.5-2sci8u1) scibian8; urgency=medium
+
+  * Add script_user and enable_script_security options in global_defs class
+  * correct a bug on the keyword group
+  * adding a missing patch "new_options_for_global_defs.patch" in series list
+
+ -- Benoit Boccard <benoit-externe.boccard@edf.fr>  Thu, 07 Feb 2019 15:03:11 +0100
+
 puppet-module-arioch-keepalived (1.2.4-1sci8u1) scibian8; urgency=medium
 
   * Scibian8 rebuild.
