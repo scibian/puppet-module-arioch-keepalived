@@ -47,8 +47,6 @@
 #
 # $virtual_router_id::     Set virtual router id.
 #
-# $ensure::                Default: present.
-#
 # $auth_type::             Set authentication method.
 #                          Default: undef.
 #
@@ -138,14 +136,19 @@
 #                          the other router to lose (or not gain) MASTER state,
 #                          since it was also tracking link status.
 #                          Default: false.
+#
+# $use_vmac                Use virtual MAC address for virtual IP addresses.
+#
+# $vmac_xmit_base          When using virtual MAC addresses transmit and receive
+#                          VRRP messaged on the underlying interface whilst ARP
+#                          will happen from the the VMAC interface.
 
 define keepalived::vrrp::instance (
   $interface,
   $priority,
   $state,
-  $virtual_ipaddress,
   $virtual_router_id,
-  $ensure                     = present,
+  $virtual_ipaddress          = undef,
   $auth_type                  = undef,
   $auth_pass                  = undef,
   $track_script               = undef,
@@ -169,6 +172,8 @@ define keepalived::vrrp::instance (
   $unicast_source_ip          = undef,
   $unicast_peers              = undef,
   $dont_track_primary         = false,
+  $use_vmac                   = false,
+  $vmac_xmit_base             = true,
 
 ) {
   $_name = regsubst($name, '[:\/\n]', '')
@@ -181,7 +186,6 @@ define keepalived::vrrp::instance (
   }
 
   concat::fragment { "keepalived.conf_vrrp_instance_${_name}":
-    ensure  => $ensure,
     target  => "${::keepalived::config_dir}/keepalived.conf",
     content => template('keepalived/vrrp_instance.erb'),
     order   => '100',
