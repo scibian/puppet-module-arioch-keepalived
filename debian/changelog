@@ -1,3 +1,9 @@
+puppet-module-arioch-keepalived (1.2.5-2sci9u3) scibian9; urgency=medium
+
+  * Use pristine-tar branch when importing  new sources 
+
+ -- Benoit Boccard <benoit-externe.boccard@edf.fr>  Thu, 07 Feb 2019 16:45:39 +0100
+
 puppet-module-arioch-keepalived (1.2.5-2sci9u2) scibian9; urgency=medium
 
   * Add patch install_ipvsadm_on_debian.patch
