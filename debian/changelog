@@ -1,3 +1,9 @@
+puppet-module-arioch-keepalived (1.2.5-2sci8u3) scibian8; urgency=medium
+
+  * Add puppet4 dependency 
+
+ -- Benoit Boccard <benoit-externe.boccard@edf.fr>  Thu, 14 Feb 2019 15:13:31 +0100
+
 puppet-module-arioch-keepalived (1.2.5-2sci8u2) scibian8; urgency=medium
 
   * Use pristine-tar branch when importing  new sources 
