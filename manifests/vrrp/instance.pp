@@ -28,8 +28,19 @@
 #                             containing extra properties
 #                             e.g. `{ 'src' => '10.0.0.1',
 #                                     'to' => '192.168.30.0/24',
-#                                     'via' => '10.0.0.254' }`
-#                             Supported properties: src, to, via, dev, scope
+#                                     'via' => '10.0.0.254',
+#                                     'metric' => '15' }`
+#                             Supported properties: src, to, via, dev, scope, table, metric
+#
+# $virtual_rules::        Set floating rules.
+#
+#                          May be specified as a hash (or array of hashes)
+#                             containing extra properties
+#                             e.g. `{ 'from' => '10.0.0.1',
+#                                     'via' => '10.0.0.254',
+#                                     'lookup' => 'customroute',
+#                                     'metric' => '15' }`
+#                             Supported properties: from, to, dev, lookup, metric
 #
 # $virtual_ipaddress_excluded:: For cases with large numbers (eg 200) of IPs
 #                               on the same interface. To decrease the number
@@ -56,6 +67,9 @@
 # $track_script::          Define which script to run to track service states.
 #                          Default: undef.
 #
+# $track_process::         Define which process trackers to run.
+#                          Default: undef.
+#
 # $track_interface::       Define which interface(s) to monitor.
 #                          Go to FAULT state if one of
 #                          these interfaces goes down.
@@ -65,9 +79,6 @@
 #                          Default: undef.
 #
 # $lvs_interface::         Define lvs_sync_daemon_interface.
-#                          Default: undef.
-#
-# $notify_script::         Script to run during ANY state transit
 #                          Default: undef.
 #
 # $smtp_alert::            Send status alerts via SMTP. Requires user provided
@@ -116,19 +127,30 @@
 #                          use this IP as src_addr for multicast vrrp packets.
 #                          Default: undef.
 #
+# $notify_script_master_rx_lower_pri:: Define the notify_master_rx_lower_pri script.
+#                          This is executed if a master receives an advert with
+#                          priority lower than the master's advert.
+#                          Default: undef.
+#
 # $unicast_source_ip::     default IP for binding vrrpd is the primary IP
 #                          on interface. If you want to hide the location of vrrpd,
 #                          use this IP as src_addr for unicast vrrp packets.
 #                          Default: undef.
 #
 # $unicast_peers::         Do not send VRRP adverts over VRRP multicast group.
-#                          Instead send adverts to the list of ip addresses using 
+#                          Instead send adverts to the list of ip addresses using
 #                          a unicast design fashion.
 #
 #                          May be specified as an array with ip addresses
 #                          Default: undef.
 #
-# $dont_track_primary      Tells keepalived to ignore VRRP interface faults.
+# $collect_unicast_peers:: Enable automatic VRRP unicast configuration with
+#                          exported resources and disable VRRP multicast.
+#                          Optionally, override default peer settings with
+#                          $unicast_source_ip and $unicast_peers params.
+#                          Default: false
+#
+# $dont_track_primary::    Tells keepalived to ignore VRRP interface faults.
 #                          Can be useful on setup where two routers are
 #                          connected directly to each other on the interface
 #                          used for VRRP. Without this feature the link down
@@ -137,58 +159,95 @@
 #                          since it was also tracking link status.
 #                          Default: false.
 #
-# $use_vmac                Use virtual MAC address for virtual IP addresses.
+# $use_vmac::              Use virtual MAC address for virtual IP addresses.
 #
-# $vmac_xmit_base          When using virtual MAC addresses transmit and receive
+# $vmac_xmit_base::        When using virtual MAC addresses transmit and receive
 #                          VRRP messaged on the underlying interface whilst ARP
 #                          will happen from the the VMAC interface.
+#
+# $native_ipv6::           Force instance to use IPv6 (when mixed IPv4 and IPv6 config)
+#
 
 define keepalived::vrrp::instance (
   $interface,
-  $priority,
+  Integer[1,254] $priority,
   $state,
-  $virtual_router_id,
-  $virtual_ipaddress          = undef,
-  $auth_type                  = undef,
-  $auth_pass                  = undef,
-  $track_script               = undef,
-  $track_interface            = undef,
-  $lvs_interface              = undef,
-  $virtual_ipaddress_int      = undef,
-  $virtual_ipaddress_excluded = undef,
-  $virtual_routes             = undef,
-  $smtp_alert                 = false,
-  $nopreempt                  = false,
-  $preempt_delay              = undef,
-  $advert_int                 = 1,
-  $garp_master_delay          = 5,
-  $garp_master_refresh        = undef,
-  $notify_script_master       = undef,
-  $notify_script_backup       = undef,
-  $notify_script_fault        = undef,
-  $notify_script_stop         = undef,
-  $notify_script              = undef,
-  $multicast_source_ip        = undef,
-  $unicast_source_ip          = undef,
-  $unicast_peers              = undef,
-  $dont_track_primary         = false,
-  $use_vmac                   = false,
-  $vmac_xmit_base             = true,
-
+  Integer[1,255] $virtual_router_id,
+  $virtual_ipaddress                                                      = undef,
+  $auth_type                                                              = undef,
+  $auth_pass                                                              = undef,
+  $track_script                                                           = undef,
+  Optional[Array[String[1]]] $track_process                               = undef,
+  $track_interface                                                        = undef,
+  $lvs_interface                                                          = undef,
+  $virtual_ipaddress_int                                                  = undef,
+  $virtual_ipaddress_excluded                                             = undef,
+  $virtual_routes                                                         = undef,
+  Optional[Array[Keepalived::Vrrp::Instance::VRule]] $virtual_rules       = undef,
+  $smtp_alert                                                             = false,
+  $nopreempt                                                              = false,
+  $preempt_delay                                                          = undef,
+  $advert_int                                                             = 1,
+  $garp_master_delay                                                      = 5,
+  $garp_master_refresh                                                    = undef,
+  Optional[Integer] $garp_lower_prio_repeat                               = undef,
+  Optional[Boolean] $higher_prio_send_advert                              = undef,
+  Optional[Stdlib::Absolutepath] $notify_script_master_rx_lower_pri       = undef,
+  $notify_script_master                                                   = undef,
+  $notify_script_backup                                                   = undef,
+  $notify_script_fault                                                    = undef,
+  $notify_script_stop                                                     = undef,
+  $notify_script                                                          = undef,
+  $multicast_source_ip                                                    = undef,
+  Optional[Stdlib::IP::Address] $unicast_source_ip                        = undef,
+  Variant[Array[Stdlib::IP::Address], Stdlib::IP::Address] $unicast_peers = [],
+  Boolean $collect_unicast_peers                                          = false,
+  $dont_track_primary                                                     = false,
+  $use_vmac                                                               = false,
+  $vmac_xmit_base                                                         = true,
+  Boolean $native_ipv6                                                    = false,
 ) {
   $_name = regsubst($name, '[:\/\n]', '')
-
-  if (!is_integer($priority) or ($priority + 0) < 1 or ($priority + 0) > 254) {
-    fail('priority must be an integer 1 >= and <= 254')
-  }
-  if (!is_integer($virtual_router_id) or ($virtual_router_id + 0) < 1 or ($virtual_router_id + 0) > 255) {
-    fail('virtual_router_id must be an integer >= 1 and <= 255')
-  }
+  $unicast_peer_array = [$unicast_peers].flatten
 
   concat::fragment { "keepalived.conf_vrrp_instance_${_name}":
-    target  => "${::keepalived::config_dir}/keepalived.conf",
+    target  => "${keepalived::config_dir}/keepalived.conf",
     content => template('keepalived/vrrp_instance.erb'),
-    order   => '100',
+    order   => "100-${_name}-000",
+  }
+
+  if size($unicast_peer_array) > 0 or $collect_unicast_peers {
+    concat::fragment { "keepalived.conf_vrrp_instance_${_name}_upeers_header":
+      target  => "${keepalived::config_dir}/keepalived.conf",
+      content => "  unicast_peer {\n",
+      order   => "100-${_name}-010",
+    }
+
+    if $collect_unicast_peers {
+      if $unicast_source_ip != undef {
+        $unicast_src = $unicast_source_ip
+      } else {
+        $unicast_src = inline_template("<%= scope.lookupvar('::ipaddress_${interface}') -%>")
+      }
+
+      @@keepalived::vrrp::unicast_peer { $unicast_src: instance => $name }
+      Keepalived::Vrrp::Unicast_peer <<| instance == $name and title != $unicast_src |>>
+    }
+
+    if size($unicast_peer_array) > 0 {
+      keepalived::vrrp::unicast_peer { $unicast_peer_array: instance => $name }
+    }
+
+    concat::fragment { "keepalived.conf_vrrp_instance_${_name}_upeers_footer":
+      target  => "${keepalived::config_dir}/keepalived.conf",
+      content => "  }\n\n",
+      order   => "100-${_name}-030",
+    }
+  }
+
+  concat::fragment { "keepalived.conf_vrrp_instance_${_name}_footer":
+    target  => "${keepalived::config_dir}/keepalived.conf",
+    content => "}\n\n",
+    order   => "100-${_name}-zzz",
   }
 }
-
