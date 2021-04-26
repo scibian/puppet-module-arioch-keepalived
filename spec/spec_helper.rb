@@ -1,26 +1,18 @@
-require 'rubygems'
-require 'rspec-puppet'
+# This file is managed via modulesync
+# https://github.com/voxpupuli/modulesync
+# https://github.com/voxpupuli/modulesync_config
 
-fixture_path = File.expand_path(File.join(__FILE__, '..', 'fixtures'))
+# puppetlabs_spec_helper will set up coverage if the env variable is set.
+# We want to do this if lib exists and it hasn't been explicitly set.
+ENV['COVERAGE'] ||= 'yes' if Dir.exist?(File.expand_path('../../lib', __FILE__))
 
-RSpec.configure do |c|
-  c.module_path = File.join(fixture_path, 'modules')
-  c.manifest_dir = File.join(fixture_path, 'manifests')
-  c.environmentpath = File.join(fixture_path,'..')
-end
+require 'voxpupuli/test/spec_helper'
 
-def centos_facts
-  {
-    :operatingsystem => 'CentOS',
-    :osfamily        => 'RedHat',
-    :puppetversion   => ENV['PUPPET_VERSION'] || '3.7.5',
-  }
-end
-
-def debian_facts
-  {
-    :operatingsystem => 'Debian',
-    :osfamily        => 'Debian',
-    :puppetversion   => ENV['PUPPET_VERSION'] || '3.7.5',
-  }
+if File.exist?(File.join(__dir__, 'default_module_facts.yml'))
+  facts = YAML.safe_load(File.read(File.join(__dir__, 'default_module_facts.yml')))
+  if facts
+    facts.each do |name, value|
+      add_custom_fact name.to_sym, value
+    end
+  end
 end

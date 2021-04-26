@@ -22,20 +22,24 @@
 # $timeout::  max time to wait for the vrrp script to return.
 #             Default: undef
 #
+# $user::     user to run the vrrp script under.
+#             Default: undef
+#
+# $group::    group to run the vrrp script under - only used if $user is also set.
+#             Default: undef
+#
 define keepalived::vrrp::script (
+  String[1] $script,
   $interval  = '2',
-  $script    = undef,
   $weight    = undef,
   $fall      = undef,
   $rise      = undef,
   $timeout   = undef,
+  $user      = undef,
+  $group     = undef,
   $no_weight = false,
 ) {
   $_name = regsubst($name, '[:\/\n]', '')
-
-  if ! $script {
-    fail 'No script provided.'
-  }
 
   if ! $weight {
     $weight_real = 2
@@ -48,9 +52,8 @@ define keepalived::vrrp::script (
   }
 
   concat::fragment { "keepalived.conf_vrrp_script_${_name}":
-    target  => "${::keepalived::config_dir}/keepalived.conf",
+    target  => "${keepalived::config_dir}/keepalived.conf",
     content => template('keepalived/vrrp_script.erb'),
     order   => '002',
   }
 }
-

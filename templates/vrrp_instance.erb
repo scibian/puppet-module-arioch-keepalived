@@ -21,16 +21,26 @@ vrrp_instance <%= @_name %> {
   <%- if @garp_master_refresh -%>
   garp_master_refresh         <%= @garp_master_refresh %>
   <%- end -%>
+  <%- if @garp_lower_prio_repeat -%>
+  garp_lower_prio_repeat <%= @garp_lower_prio_repeat %>
+  <%- end -%>
+  <%- if @higher_prio_send_advert -%>
+  higher_prio_send_advert <%= @higher_prio_send_advert %>
+  <%- end -%>
 
   <%- if @dont_track_primary -%>
   dont_track_primary
   <%- end -%>
 
   <%- if @use_vmac -%>
-  use_vmac
+  use_vmac <%= @use_vmac.is_a?(String) ? @use_vmac : '' %>
   <%- if @vmac_xmit_base -%>
   vmac_xmit_base
   <%- end -%>
+  <%- end -%>
+
+  <%- if @native_ipv6 -%>
+  native_ipv6
   <%- end -%>
 
   # notify scripts and alerts are optional
@@ -54,7 +64,11 @@ vrrp_instance <%= @_name %> {
   # STOP transition
   notify_stop "<%= @notify_script_stop %>"
   <%- end -%>
-
+  <%- if @notify_script_master_rx_lower_pri -%>
+  # The notify_master_rx_lower_pri script is executed if a master
+  # receives an advert with priority lower than the master's advert.
+  notify_master_rx_lower_pri "<%= @notify_script_master_rx_lower_pri %>"
+  <%- end -%>
 
   <%- if @notify_script -%>
   # for ANY state transition.
@@ -86,6 +100,14 @@ vrrp_instance <%= @_name %> {
   }
   <%- end -%>
 
+  <%- if @track_process -%>
+  track_process {
+  <%- Array(@track_process).each do |track| -%>
+    <%= track %>
+  <%- end -%>
+  }
+  <%- end -%>
+
   <%- if @track_interface -%>
   track_interface {
   <%- Array(@track_interface).each do |interface| -%>
@@ -105,9 +127,17 @@ vrrp_instance <%= @_name %> {
     <%- if ip.class == Hash -%>
       <%- device = ip['dev'] || @virtual_ipaddress_int || @interface -%>
       <%- attrs = Hash[ ip.select { |k,v| ['label', 'brd', 'scope'].include? k } ] -%>
-    <%= ip['ip'] %> dev <%= device %> <%= attrs.sort_by{ |k,v| k }.entries.join ' ' %>
+      <%- if @use_vmac -%>
+    <%= Array(ip['ip']).collect{|lip| "#{lip}" }.join("\n    ") %>
+      <%- else -%>
+    <%= Array(ip['ip']).collect{|lip| "#{lip} dev #{device} #{attrs.sort_by{ |k,v| k }.entries.join ' '}" }.join("\n    ") %>
+      <%- end -%>
     <%- else -%>
+      <%- if @use_vmac -%>
+    <%= ip %>
+      <%- else -%>
     <%= ip %> dev <%= @virtual_ipaddress_int || @interface %>
+      <%- end -%>
     <%- end -%>
   <%- end -%>
   }
@@ -124,10 +154,17 @@ vrrp_instance <%= @_name %> {
     <%- if ip.class == Hash -%>
       <%- device = ip['dev'] || @virtual_ipaddress_int || @interface -%>
       <%- attrs = Hash[ ip.select { |k,v| ['label', 'brd', 'scope'].include? k } ] -%>
-      <%= ip['ip'] %> dev <%= device %> <%= attrs.sort_by{ |k,v| k }.entries.join ' ' %>
-
+      <%- if @use_vmac -%>
+    <%= Array(ip['ip']).collect{|lip| "#{lip}" }.join("\n    ") %>
+      <%- else -%>
+    <%= Array(ip['ip']).collect{|lip| "#{lip} dev #{device} #{attrs.sort_by{ |k,v| k }.entries.join ' '}" }.join("\n    ") %>
+      <%- end -%>
     <%- else -%>
-      <%= ip %> dev <%= @virtual_ipaddress_int || @interface %>
+      <%- if @use_vmac -%>
+    <%= ip %>
+      <%- else -%>
+    <%= ip %> dev <%= @virtual_ipaddress_int || @interface %>
+      <%- end -%>
     <%- end -%>
   <%- end -%>
   }
@@ -141,8 +178,16 @@ vrrp_instance <%= @_name %> {
     <%- vroutes = @virtual_routes -%>
   <%- end -%>
   <%- vroutes.each do |route| -%>
-    <%- attrs = Hash[ route.select { |k,v| ['src', 'to', 'via', 'dev', 'scope'].include? k } ] -%>
+    <%- attrs = Hash[ route.select { |k,v| ['src', 'to', 'via', 'dev', 'scope', 'table', 'metric'].include? k } ] -%>
     <%= route['route'] %>  <%= attrs.sort_by{ |k,v| k }.entries.join ' ' %>
+  <%- end -%>
+  }
+  <%- end -%>
+
+  <%- if @virtual_rules -%>
+  virtual_rules {
+  <%-  @virtual_rules.each do |rule| -%>
+    <%= rule['rule'] %>  <%= rule.sort_by{ |k,v| k }.entries.join ' ' %>
   <%- end -%>
   }
   <%- end -%>
@@ -150,16 +195,7 @@ vrrp_instance <%= @_name %> {
   <%- if @multicast_source_ip -%>
   mcast_src_ip <%= @multicast_source_ip %>
   <%- end -%>
+
   <%- if @unicast_source_ip -%>
   unicast_src_ip <%= @unicast_source_ip %>
   <%- end -%>
-
-  <%- if @unicast_peers -%>
-  unicast_peer {
-  <%- @unicast_peers.each do |peer| -%>
-    <%= peer %>
-  <%- end -%>
-  }
-  <%- end -%>
-
-}
