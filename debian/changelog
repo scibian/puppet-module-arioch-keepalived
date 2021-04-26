@@ -1,3 +1,9 @@
+puppet-module-arioch-keepalived (3.0.0-1sci9u1) scibian9; urgency=medium
+
+  * replace puppet-common by puppet5-common
+
+ -- Kwame AMEDODJI <kwame-externe.amedodji@edf.fr>  Mon, 26 Apr 2021 17:53:58 +0200
+
 puppet-module-arioch-keepalived (1.2.5-2sci9u3) scibian9; urgency=medium
 
   * Use pristine-tar branch when importing  new sources 
