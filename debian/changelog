@@ -1,3 +1,11 @@
+puppet-module-arioch-keepalived (3.0.0-1sci9u2) scibian9; urgency=medium
+
+  * replace puppet-common by puppet5-common
+  * test without previous patches
+  * ignore debian/files right now
+
+ -- Kwame AMEDODJI <kwame-externe.amedodji@edf.fr>  Tue, 27 Apr 2021 10:17:35 +0200
+
 puppet-module-arioch-keepalived (3.0.0-1sci9u1) scibian9; urgency=medium
 
   * replace puppet-common by puppet5-common
