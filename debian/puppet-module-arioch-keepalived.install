@@ -2,3 +2,4 @@ metadata.json usr/share/puppet/modules.available/arioch-keepalived
 manifests     usr/share/puppet/modules.available/arioch-keepalived
 templates     usr/share/puppet/modules.available/arioch-keepalived
 lib           usr/share/puppet/modules.available/arioch-keepalived
+types         usr/share/puppet/modules.available/arioch-keepalived
